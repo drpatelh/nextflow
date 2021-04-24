@@ -125,6 +125,7 @@ subprojects {
 
     jar {
         from sourceSets.main.allSource
+        duplicatesStrategy = DuplicatesStrategy.WARN
     }
 
     tasks.withType(GenerateModuleMetadata) {
