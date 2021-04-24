@@ -112,11 +112,15 @@ allprojects {
         }
     }
 
+    tasks.withType(Jar) {
+        duplicatesStrategy = DuplicatesStrategy.WARN
+    }
+
     // patched as described here
     // http://forums.gradle.org/gradle/topics/gradle_task_groovydoc_failing_with_noclassdeffounderror
     tasks.withType(Groovydoc) {
         groovyClasspath = project.configurations.groovyDoc
-        includes  = ["nextflow/**"]
+        includes = ["nextflow/**"]
     }
 
     // Required to run tests on Java 9 and higher in compatibility mode
@@ -126,10 +130,12 @@ allprojects {
                     '--add-opens=java.base/java.lang=ALL-UNNAMED',
                     '--add-opens=java.base/java.io=ALL-UNNAMED',
                     '--add-opens=java.base/java.nio=ALL-UNNAMED',
+                    '--add-opens=java.base/java.net=ALL-UNNAMED',
                     '--add-opens=java.base/java.util=ALL-UNNAMED',
                     '--add-opens=java.base/java.util.concurrent.locks=ALL-UNNAMED',
                     '--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED',
                     '--add-opens=java.base/sun.nio.ch=ALL-UNNAMED',
+                    '--add-opens=java.base/sun.nio.fs=ALL-UNNAMED',
                     '--add-opens=java.base/sun.net.www.protocol.http=ALL-UNNAMED',
                     '--add-opens=java.base/sun.net.www.protocol.https=ALL-UNNAMED',
                     '--add-opens=java.base/sun.net.www.protocol.ftp=ALL-UNNAMED',
