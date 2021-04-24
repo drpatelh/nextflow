@@ -1,6 +1,6 @@
 configurations {
     capsule
-    defaultCfg.extendsFrom runtime
+    defaultCfg.extendsFrom api 
     //provided
     console.extendsFrom defaultCfg
     ignite.extendsFrom defaultCfg
