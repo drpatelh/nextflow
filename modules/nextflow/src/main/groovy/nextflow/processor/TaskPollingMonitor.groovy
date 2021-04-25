@@ -408,7 +408,11 @@ class TaskPollingMonitor implements TaskMonitor {
             // check all running tasks for termination
             checkAllTasks(tasks)
 
-            if( (session.isTerminated() && runningQueue.size()==0 && pendingQueue.size()==0) || session.isAborted() ) {
+            final shouldBreak
+                    =  (session.isTerminated() && runningQueue.size()==0 && pendingQueue.size()==0)
+                    || (session.isCancelled() && runningQueue.size()==0) // cancel is set when error 'finish' is set, therefore tasks in the pending queue should not be taken in consideration
+                    || session.isAborted()
+            if( shouldBreak ) {
                 break
             }
 
@@ -546,25 +550,28 @@ class TaskPollingMonitor implements TaskMonitor {
 
         int count = 0
         def itr = pendingQueue.iterator()
-        while( itr.hasNext() ) {
+        while( itr.hasNext() && session.isSuccess() ) {
             final handler = itr.next()
+            boolean removeTask = false
             try {
                 submitRateLimit?.acquire()
 
                 if( !canSubmit(handler) )
                     continue
 
-                if( session.isSuccess() ) {
-                    itr.remove(); count++   // <-- remove the task in all cases
-                    handler.incProcessForks()
-                    submit(handler)
-                }
-                else
-                    break
+                count++
+                removeTask = true
+                handler.incProcessForks()
+                submit(handler)
             }
             catch ( Throwable e ) {
+                removeTask = true
                 handleException(handler, e)
                 session.notifyTaskComplete(handler)
+            }
+            finally {
+                if( removeTask )
+                    itr.remove()
             }
         }
 
