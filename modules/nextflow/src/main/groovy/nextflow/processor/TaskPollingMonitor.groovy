@@ -552,27 +552,22 @@ class TaskPollingMonitor implements TaskMonitor {
         def itr = pendingQueue.iterator()
         while( itr.hasNext() && session.isSuccess() ) {
             final handler = itr.next()
-            boolean removeTask = false
+            submitRateLimit?.acquire()
             try {
-                submitRateLimit?.acquire()
-
                 if( !canSubmit(handler) )
                     continue
 
                 count++
-                removeTask = true
                 handler.incProcessForks()
                 submit(handler)
             }
             catch ( Throwable e ) {
-                removeTask = true
                 handleException(handler, e)
                 session.notifyTaskComplete(handler)
             }
-            finally {
-                if( removeTask )
-                    itr.remove()
-            }
+            // remove processed handler either on successful submit or failed one (managed by catch section)
+            // when `canSubmit` return false the handler should be retained to be tried in a following iteration
+            itr.remove()
         }
 
         return count
